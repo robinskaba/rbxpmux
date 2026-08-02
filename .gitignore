@@ -1,0 +1,8 @@
+.env
+*.rbxl
+workfiles
+releases
+*.exe
+*.syso
+package.bat
+package.sh
