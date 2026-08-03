@@ -39,7 +39,7 @@ game.ServerStorage.Folder
 workspace.ToolA
 
 remove
-ServerScriptService.Modules.Script // remove
+ServerScriptService.Modules.Script
 ```
 
 ## Download
