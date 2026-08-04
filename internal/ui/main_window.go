@@ -45,7 +45,6 @@ func MainWindow(a fyne.App, controller *controller.Controller) fyne.Window {
 func setApiConfigurationView(controller *controller.Controller) {
 	apiConfigurationViewCfg := &views.ApiConfigurationViewConfiguration{
 		OnSubmitCallback: func(userIdStr string, apiKey string) {
-			slog.Info("saving api configuration", "user id", userIdStr, "api key", apiKey)
 			userId, err := strconv.Atoi(userIdStr)
 			if err != nil {
 				dialogs.BadInput("User ID", mainWindow)
