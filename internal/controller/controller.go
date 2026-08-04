@@ -5,6 +5,7 @@ import (
 	"log/slog"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/robinskaba/rbxpmux/internal/client"
 	"github.com/robinskaba/rbxpmux/internal/config"
@@ -135,12 +136,24 @@ func (c *Controller) PublishPlace(universeId int, placeId int) error {
 	if !ok {
 		return fmt.Errorf("converted place is missing in memory: %d", placeId)
 	}
-	slog.Info("publishing place", "universeId", universeId, "placeId", placeId)
-	err := c.Api.PublishPlace(universeId, placeId, converted)
-	if err != nil {
-		return err
+
+	pslog := slog.With("universeId", universeId, "placeId", placeId)
+	var err error
+
+	for attempt := 1; attempt <= 4; attempt++ {
+		err = c.Api.PublishPlace(universeId, placeId, converted)
+		if err == nil {
+			pslog.Info("publishing successful", "attempts", attempt)
+			return nil
+		}
+
+		if attempt < 4 {
+			pslog.Info("publishing failed, retrying", "attempt", attempt, "error", err)
+			time.Sleep(2 * time.Second)
+		}
 	}
-	return nil
+
+	return err
 }
 
 func (c *Controller) ParseTXTFile(path string) (string, string, error) {
