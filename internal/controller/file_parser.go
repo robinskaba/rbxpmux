@@ -32,6 +32,11 @@ func parseTXTFile(path string) (string, string, error) {
 		case "remove":
 			buf = &remove
 		default:
+			commentIdx := strings.Index(line, "--")
+			if commentIdx != -1 {
+				line = line[:commentIdx]
+			}
+			line = strings.TrimRight(line, " ")
 			buf.WriteString(line + "\n")
 		}
 	}

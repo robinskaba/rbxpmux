@@ -36,7 +36,7 @@ The `.txt` file format is simply a list of paths separated by newlines annotated
 ```
 copy
 game.ServerStorage.Folder
-workspace.ToolA
+workspace.ToolA -- input files can have lua syntax like comments
 
 remove
 ServerScriptService.Modules.Script
