@@ -95,11 +95,11 @@ func TestEditPlaces(t *testing.T) {
 			name: "Remove an existing instance",
 			instructions: []editor.Instruction{
 				// Pre-requisite: 'FolderToRemove' must exist in place_a.rbxl
-				{Type: editor.REMOVE, Content: "ServerStorage/FolderToRemove"},
+				{Type: editor.REMOVE, Content: "ServerStorage.FolderToRemove"},
 			},
 			wantErr: false,
 			verify: func(t *testing.T, resultRoot *rbxfile.Root) {
-				_, err := findInstance(resultRoot, "ServerStorage/FolderToRemove")
+				_, err := findInstance(resultRoot, "ServerStorage.FolderToRemove")
 				if err == nil {
 					t.Errorf("expected ServerStorage/FolderToRemove to be removed, but it was found")
 				}
@@ -109,15 +109,15 @@ func TestEditPlaces(t *testing.T) {
 			name: "Copy a missing instance (insert) and verify contents match perfectly",
 			instructions: []editor.Instruction{
 				// Pre-requisite: 'NewFeature' must exist in origin.rbxl but not in place_a.rbxl
-				{Type: editor.COPY, Content: "ServerScriptService/NewFeature"},
+				{Type: editor.COPY, Content: "ServerScriptService.NewFeature"},
 			},
 			wantErr: false,
 			verify: func(t *testing.T, resultRoot *rbxfile.Root) {
-				actualInstance, err := findInstance(resultRoot, "ServerScriptService/NewFeature")
+				actualInstance, err := findInstance(resultRoot, "ServerScriptService.NewFeature")
 				if err != nil {
-					t.Fatalf("expected ServerScriptService/NewFeature to be inserted, but got error: %v", err)
+					t.Fatalf("expected ServerScriptService.NewFeature to be inserted, but got error: %v", err)
 				}
-				expectedInstance, err := findInstance(originRoot, "ServerScriptService/NewFeature")
+				expectedInstance, err := findInstance(originRoot, "ServerScriptService.NewFeature")
 				if err != nil {
 					t.Fatalf("failed to find origin instance for verification: %v", err)
 				}
@@ -128,15 +128,15 @@ func TestEditPlaces(t *testing.T) {
 			name: "Copy an existing instance (replace) and verify contents match perfectly",
 			instructions: []editor.Instruction{
 				// Pre-requisite: 'FolderToReplace' must exist in BOTH origin.rbxl and place_a.rbxl (with different contents to actually test replacement)
-				{Type: editor.COPY, Content: "ServerStorage/FolderToReplace"},
+				{Type: editor.COPY, Content: "ServerStorage.FolderToReplace"},
 			},
 			wantErr: false,
 			verify: func(t *testing.T, resultRoot *rbxfile.Root) {
-				actualInstance, err := findInstance(resultRoot, "ServerStorage/FolderToReplace")
+				actualInstance, err := findInstance(resultRoot, "ServerStorage.FolderToReplace")
 				if err != nil {
-					t.Fatalf("expected ServerStorage/FolderToReplace to exist, but got error: %v", err)
+					t.Fatalf("expected ServerStorage.FolderToReplace to exist, but got error: %v", err)
 				}
-				expectedInstance, err := findInstance(originRoot, "ServerStorage/FolderToReplace")
+				expectedInstance, err := findInstance(originRoot, "ServerStorage.FolderToReplace")
 				if err != nil {
 					t.Fatalf("failed to find origin instance for verification: %v", err)
 				}
@@ -146,14 +146,14 @@ func TestEditPlaces(t *testing.T) {
 		{
 			name: "Fail to remove non-existent instance",
 			instructions: []editor.Instruction{
-				{Type: editor.REMOVE, Content: "ServerStorage/NonExistentFolder123"},
+				{Type: editor.REMOVE, Content: "ServerStorage.NonExistentFolder123"},
 			},
 			wantErr: true,
 		},
 		{
 			name: "Fail to copy non-existent origin instance",
 			instructions: []editor.Instruction{
-				{Type: editor.COPY, Content: "ServerStorage/NonExistentOriginFolder123"},
+				{Type: editor.COPY, Content: "ServerStorage.NonExistentOriginFolder123"},
 			},
 			wantErr: true,
 		},
@@ -161,7 +161,7 @@ func TestEditPlaces(t *testing.T) {
 			name: "Fail to copy (insert) into non-existent target parent",
 			instructions: []editor.Instruction{
 				// Pre-requisite: 'MissingParent/NewChild' exists in origin.rbxl, but 'MissingParent' is absent in place_a.rbxl
-				{Type: editor.COPY, Content: "ServerStorage/MissingParent/NewChild"},
+				{Type: editor.COPY, Content: "ServerStorage.MissingParent.NewChild"},
 			},
 			wantErr: true,
 		},

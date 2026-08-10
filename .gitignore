@@ -7,3 +7,4 @@ releases
 *.syso
 package.bat
 package.sh
+*.lock
