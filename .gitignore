@@ -1,5 +1,6 @@
 .env
 *.rbxl
+!tests/**/*.rbxl
 workfiles
 releases
 *.exe
