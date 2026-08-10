@@ -23,12 +23,14 @@ Instructions are used to either copy or remove an instance. Provide a list of in
 
 Valid paths look like this:
 
-- `game.ServerStorage.Folder`
-- `game.Workspace.Models`
-- `ServerScriptService.Modules` (the `game` prefix can be omitted)
-- `workspace.ToolA` (the `workspace` alias works)
-- `StarterGui` (entire services can be copied as one path)
-- `ServerStorage["Items-New"]['Bad-Naming-Convention']` (table syntax supported)
+```
+game.ServerStorage.Folder
+game.Workspace.Models
+ServerScriptService.Modules (the 'game' prefix can be omitted)
+workspace.ToolA (the 'workspace' alias works)
+StarterGui (entire services can be copied as one path)
+ServerStorage["Items-New"]['Bad-Naming-Convention'] (table syntax supported)
+```
 
 The `.txt` file format is simply a list of paths separated by newlines annotated by either a `copy` or `remove` heading.
 
