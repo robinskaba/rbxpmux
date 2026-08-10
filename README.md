@@ -45,4 +45,9 @@ ServerScriptService.Modules.Script
 
 ## Download
 
-Download the executable for your OS from [the releases](https://github.com/robinskaba/rbxpmux/releases/latest). No other installation is necessary.
+Download the executable for your OS from [the releases](https://github.com/robinskaba/rbxpmux/releases/latest).
+
+Installation:
+
+- windows, macOS - no installation necessary
+- linux - run `./install.sh`
