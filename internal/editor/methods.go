@@ -167,8 +167,14 @@ func performRemove(target *rbxfile.Root, instruction string) error {
 func executePlaceInstructions(origin *rbxfile.Root, target *rbxfile.Root, instructions []Instruction) error {
 	for i := range instructions {
 		ins := instructions[i]
+
 		ins.Content = strings.TrimSuffix(ins.Content, ".")
 		ins.Content = strings.TrimPrefix(ins.Content, "game.")
+		ins.Content = strings.ReplaceAll(ins.Content, "[", ".")
+		ins.Content = strings.ReplaceAll(ins.Content, "]", "")
+		ins.Content = strings.ReplaceAll(ins.Content, "'", "")
+		ins.Content = strings.ReplaceAll(ins.Content, "\"", "")
+
 		if strings.HasPrefix(ins.Content, "workspace") {
 			ins.Content = strings.Replace(ins.Content, "workspace", "Workspace", 1)
 		}
