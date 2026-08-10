@@ -1,0 +1,137 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+env:
+  VERSION: ""
+
+jobs:
+  linux-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.26.x" # Match version in go.mod
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc libgl1-mesa-dev xorg-dev
+
+      - name: Install Fyne
+        run: go install fyne.io/fyne/v2/cmd/fyne@latest
+
+      - name: Get version
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+
+      - name: Build and Package
+        run: |
+          cd cmd/app
+          fyne package -os linux -icon Icon.png -name rbxpmux -appVersion ${{ env.VERSION }}
+
+          mkdir -p ../../releases/${{ env.VERSION }}
+          mv rbxpmux.tar.xz ../../releases/${{ env.VERSION }}/rbxpmux.tar.xz
+
+          cd ../../releases/${{ env.VERSION }}
+          tar -xf rbxpmux.tar.xz app/usr/local/bin/app --strip-components=4
+          mv app rbxpmux
+          tar -xf rbxpmux.tar.xz app/usr/local/share/pixmaps/rbxpmux.png --strip-components=5
+          tar -xf rbxpmux.tar.xz app/usr/local/share/applications/rbxpmux.desktop --strip-components=5
+          rm rbxpmux.tar.xz
+          
+          # Copy the install script from the repository
+          cp ../../scripts/install.sh .
+          chmod +x install.sh
+
+          # Create the final archive
+          tar -czf "rbxpmux-linux-v${{ env.VERSION }}.tar.gz" rbxpmux rbxpmux.png rbxpmux.desktop install.sh
+
+          # Clean up uncompressed files
+          rm rbxpmux rbxpmux.png rbxpmux.desktop install.sh
+
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: releases/${{ env.VERSION }}/rbxpmux-linux-v${{ env.VERSION }}.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  windows-build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.26.x" # Match version in go.mod
+
+      - name: Install Fyne
+        run: go install fyne.io/fyne/v2/cmd/fyne@latest
+
+      - name: Get version
+        id: get_version
+        shell: bash
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+
+      - name: Build and Package
+        shell: bash
+        run: |
+          cd cmd/app
+          fyne package -os windows -icon Icon.png -name rbxpmux.exe -appVersion ${{ env.VERSION }}
+          mkdir -p ../../releases/${{ env.VERSION }}
+          mv rbxpmux.exe ../../releases/${{ env.VERSION }}/rbxpmux.exe
+
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: releases/${{ env.VERSION }}/rbxpmux.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  macos-build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.26.x" # Match version in go.mod
+
+      - name: Install Fyne
+        run: go install fyne.io/fyne/v2/cmd/fyne@latest
+
+      - name: Get version
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_ENV
+
+      - name: Build and Package
+        run: |
+          cd cmd/app
+          fyne package -os darwin -icon Icon.png -name rbxpmux -appVersion ${{ env.VERSION }}
+          
+          mkdir -p ../../releases/${{ env.VERSION }}
+          # Create zip archive from the .app directory
+          zip -r rbxpmux-macos-v${{ env.VERSION }}.zip rbxpmux.app
+          mv rbxpmux-macos-v${{ env.VERSION }}.zip ../../releases/${{ env.VERSION }}/
+
+      - name: Upload Release Asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: releases/${{ env.VERSION }}/rbxpmux-macos-v${{ env.VERSION }}.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
