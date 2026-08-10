@@ -28,6 +28,7 @@ Valid paths look like this:
 - `ServerScriptService.Modules` (the `game` prefix can be omitted)
 - `workspace.ToolA` (the `workspace` alias works)
 - `StarterGui` (entire services can be copied as one path)
+- `ServerStorage["Items-New"]['Bad-Naming-Convention']` (table syntax supported)
 
 The `.txt` file format is simply a list of paths separated by newlines annotated by either a `copy` or `remove` heading.
 
@@ -36,7 +37,7 @@ The `.txt` file format is simply a list of paths separated by newlines annotated
 ```
 copy
 game.ServerStorage.Folder
-workspace.ToolA -- input files can have lua syntax like comments
+workspace.ToolA -- you can also add comments to your instructions
 
 remove
 ServerScriptService.Modules.Script

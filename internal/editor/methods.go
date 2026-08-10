@@ -168,13 +168,26 @@ func executePlaceInstructions(origin *rbxfile.Root, target *rbxfile.Root, instru
 	for i := range instructions {
 		ins := instructions[i]
 
+		// qol feat strip tailing dots
 		ins.Content = strings.TrimSuffix(ins.Content, ".")
+
+		// strip game. prefix
 		ins.Content = strings.TrimPrefix(ins.Content, "game.")
+
+		// convert table syntax to dot syntax (workspace["Items"] -> workspace.Items)
 		ins.Content = strings.ReplaceAll(ins.Content, "[", ".")
 		ins.Content = strings.ReplaceAll(ins.Content, "]", "")
 		ins.Content = strings.ReplaceAll(ins.Content, "'", "")
 		ins.Content = strings.ReplaceAll(ins.Content, "\"", "")
 
+		// remove --comments from instruction (workspace.Items -- new item)
+		commentIdx := strings.Index(ins.Content, "--")
+		if commentIdx != -1 {
+			ins.Content = ins.Content[:commentIdx]
+		}
+		ins.Content = strings.TrimRight(ins.Content, " ")
+
+		// normalize workspace service syntax (workspace.Items -> Workspace.Items)
 		if strings.HasPrefix(ins.Content, "workspace") {
 			ins.Content = strings.Replace(ins.Content, "workspace", "Workspace", 1)
 		}
