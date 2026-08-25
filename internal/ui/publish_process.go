@@ -135,6 +135,7 @@ func startPublishProcess(controller *controller.Controller, universeId int, orig
 			fyne.Do(func() {
 				dialog.ShowError(processErr, mainWindow)
 				closeBtn.Show()
+				content.Refresh()
 			})
 			return
 		}
@@ -156,7 +157,10 @@ func startPublishProcess(controller *controller.Controller, universeId int, orig
 			for _, step := range targetModifySteps {
 				markError(step, err)
 			}
-			closeBtn.Show()
+			fyne.Do(func() {
+				closeBtn.Show()
+				content.Refresh()
+			})
 			return
 		}
 
@@ -196,6 +200,7 @@ func startPublishProcess(controller *controller.Controller, universeId int, orig
 
 		fyne.Do(func() {
 			closeBtn.Show()
+			content.Refresh()
 		})
 	}()
 }
