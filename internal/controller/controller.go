@@ -109,6 +109,14 @@ func (c *Controller) EditPlaces(copy, remove string) error {
 		var parsed []editor.Instruction
 		for _, line := range lines {
 			line = strings.TrimSpace(line)
+
+			// remove --comments from instruction (workspace.Items -- new item)
+			commentIdx := strings.Index(line, "--")
+			if commentIdx != -1 {
+				line = line[:commentIdx]
+			}
+			line = strings.TrimRight(line, " ")
+
 			if line == "" {
 				continue
 			}
