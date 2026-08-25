@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 )
@@ -34,7 +35,7 @@ func LoadConfig() (*PMUXConfig, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		// no config set up yet, use default
-		if os.IsNotExist(err) {
+		if errors.Is(err, os.ErrNotExist) {
 			return &cfg, nil
 		}
 		return nil, err
