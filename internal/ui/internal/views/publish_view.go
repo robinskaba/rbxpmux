@@ -56,6 +56,7 @@ type PublishViewConfiguration struct {
 	OnUniverseClick   func()
 	OnAuthClick       func()
 	OnHistoryClick    func()
+	OnLogsClick       func()
 	OnFileUploadClick func()
 	OnSettingsClick   func()
 	OnPublish         func(Place, []Place, string, string)
@@ -71,6 +72,7 @@ func PublishView(cfg *PublishViewConfiguration) fyne.CanvasObject {
 		cfg.OnUniverseClick,
 		cfg.OnAuthClick,
 		cfg.OnHistoryClick,
+		cfg.OnLogsClick,
 		cfg.OnFileUploadClick,
 		cfg.OnSettingsClick,
 	)
@@ -196,6 +198,7 @@ func topBar(
 	onUniverseClick func(),
 	onAuthClick func(),
 	onHistoryClick func(),
+	onLogsClick func(),
 	onFileUploadClick func(),
 	onSettingsClick func(),
 ) fyne.CanvasObject {
@@ -217,6 +220,7 @@ func topBar(
 	// right side
 	authCfgBtn := widget.NewButtonWithIcon("", theme.AccountIcon(), onAuthClick)
 	historyBtn := widget.NewButtonWithIcon("", theme.HistoryIcon(), onHistoryClick)
+	logsBtn := widget.NewButtonWithIcon("", theme.ErrorIcon(), onLogsClick)
 	fileUploadBtn := widget.NewButtonWithIcon("", theme.FileTextIcon(), onFileUploadClick)
 	settingsBtn := widget.NewButtonWithIcon("", theme.SettingsIcon(), onSettingsClick)
 
@@ -226,6 +230,7 @@ func topBar(
 		container.NewHBox(
 			fileUploadBtn,
 			historyBtn,
+			logsBtn,
 			authCfgBtn,
 			settingsBtn,
 		),

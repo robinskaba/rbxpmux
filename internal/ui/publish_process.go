@@ -11,12 +11,12 @@ import (
 	"fyne.io/fyne/v2/dialog"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
-	"github.com/robinskaba/rbxpmux/internal/controller"
 	"github.com/robinskaba/rbxpmux/internal/editor"
+	"github.com/robinskaba/rbxpmux/internal/middleman"
 	"github.com/robinskaba/rbxpmux/internal/ui/internal/views"
 )
 
-func startPublishProcess(controller *controller.Controller, universeId int, origin views.Place, targets []views.Place, copyStr string, removeStr string) {
+func startPublishProcess(controller *middleman.Controller, universeId int, origin views.Place, targets []views.Place, copyStr string, removeStr string) {
 	if controller.Settings.ApiKey == "" {
 		dialog.ShowInformation("Missing API key", "You do not have an API key configured.", mainWindow)
 		return

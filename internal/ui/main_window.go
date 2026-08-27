@@ -3,15 +3,11 @@ package ui
 import (
 	"fmt"
 	"log/slog"
-	"net/url"
-	"os"
-	"path/filepath"
 	"slices"
 	"strconv"
 
 	"github.com/robinskaba/rbxpmux/internal/client"
-	"github.com/robinskaba/rbxpmux/internal/config"
-	"github.com/robinskaba/rbxpmux/internal/controller"
+	"github.com/robinskaba/rbxpmux/internal/middleman"
 	"github.com/robinskaba/rbxpmux/internal/ui/internal/dialogs"
 	"github.com/robinskaba/rbxpmux/internal/ui/internal/views"
 
@@ -26,7 +22,7 @@ import (
 
 var mainWindow fyne.Window
 
-func MainWindow(a fyne.App, controller *controller.Controller) fyne.Window {
+func MainWindow(a fyne.App, controller *middleman.Controller) fyne.Window {
 	a.Settings().SetTheme(&customTheme{Theme: theme.DefaultTheme()})
 	mainWindow = a.NewWindow("Roblox Place Multiplexer")
 	mainWindow.Resize(fyne.NewSize(1000, 600))
@@ -42,7 +38,7 @@ func MainWindow(a fyne.App, controller *controller.Controller) fyne.Window {
 	return mainWindow
 }
 
-func setApiConfigurationView(controller *controller.Controller) {
+func setApiConfigurationView(controller *middleman.Controller) {
 	apiConfigurationViewCfg := &views.ApiConfigurationViewConfiguration{
 		OnSubmitCallback: func(userIdStr string, apiKey string) {
 			userId, err := strconv.Atoi(userIdStr)
@@ -59,7 +55,7 @@ func setApiConfigurationView(controller *controller.Controller) {
 	mainWindow.SetContent(views.ApiConfigurationView(apiConfigurationViewCfg))
 }
 
-func setUniverseSelectView(controller *controller.Controller) {
+func setUniverseSelectView(controller *middleman.Controller) {
 	loadingBar := widget.NewProgressBarInfinite()
 	loadingBar.Start()
 
@@ -111,7 +107,7 @@ func setUniverseSelectView(controller *controller.Controller) {
 	}()
 }
 
-func setPublishView(controller *controller.Controller, universeId int, publishViewCfg *views.PublishViewConfiguration) {
+func setPublishView(controller *middleman.Controller, universeId int, publishViewCfg *views.PublishViewConfiguration) {
 	if publishViewCfg != nil {
 		publishView := views.PublishView(publishViewCfg)
 		mainWindow.SetContent(publishView)
@@ -169,18 +165,18 @@ func setPublishView(controller *controller.Controller, universeId int, publishVi
 			OnUniverseClick: func() { setUniverseSelectView(controller) },
 			OnAuthClick:     func() { setApiConfigurationView(controller) },
 			OnHistoryClick: func() {
-				dir, err := config.GetProgramDir()
+				url, err := controller.GetInternalDirURL(middleman.INTERNAL_DIR_HISTORY, universeId)
 				if err != nil {
-					slog.Warn("failed to get program dir", "error", err)
 					return
 				}
-				historyDir := filepath.Join(dir, "history", fmt.Sprint(universeId))
-				os.MkdirAll(historyDir, 0755)
-
-				u, err := url.Parse("file:///" + filepath.ToSlash(historyDir))
-				if err == nil {
-					fyne.CurrentApp().OpenURL(u)
+				fyne.CurrentApp().OpenURL(url)
+			},
+			OnLogsClick: func() {
+				url, err := controller.GetInternalDirURL(middleman.INTERNAL_DIR_LOGS, universeId)
+				if err != nil {
+					return
 				}
+				fyne.CurrentApp().OpenURL(url)
 			},
 			OnFileUploadClick: func() {
 				go func() {
@@ -243,7 +239,7 @@ func setPublishView(controller *controller.Controller, universeId int, publishVi
 	}()
 }
 
-func setUniConfigurationView(controller *controller.Controller, universeId int, pblCfg *views.PublishViewConfiguration) {
+func setUniConfigurationView(controller *middleman.Controller, universeId int, pblCfg *views.PublishViewConfiguration) {
 	uniCfg := &views.UniverseConfigViewConfiguration{
 		Places:         pblCfg.Places,
 		DefaultOrigin:  pblCfg.DefaultOrigin,

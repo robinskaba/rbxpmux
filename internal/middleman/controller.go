@@ -1,8 +1,11 @@
-package controller
+package middleman
 
 import (
 	"fmt"
 	"log/slog"
+	"net/url"
+	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -170,4 +173,37 @@ func (c *Controller) ParseTXTFile(path string) (string, string, error) {
 
 func (c *Controller) ArchiveTXTFile(universeId int, copyStr, removeStr string) error {
 	return archiveTXTFile(universeId, copyStr, removeStr)
+}
+
+type InternalDir string
+
+const INTERNAL_DIR_HISTORY = "history"
+const INTERNAL_DIR_LOGS = "logs"
+
+func (c *Controller) GetInternalDirURL(internalDir InternalDir, universeId int) (*url.URL, error) {
+	dir, err := config.GetProgramDir()
+	if err != nil {
+		slog.Warn("failed to get program dir", "error", err)
+		return nil, err
+	}
+
+	var fullPath string
+	switch internalDir {
+	case INTERNAL_DIR_HISTORY:
+		fullPath = filepath.Join(dir, string(internalDir), fmt.Sprint(universeId))
+		err = os.MkdirAll(fullPath, 0755)
+		if err != nil {
+			slog.Warn("failed to create history dir", "error", err)
+			return nil, err
+		}
+	case INTERNAL_DIR_LOGS:
+		fullPath = filepath.Join(dir, string(internalDir))
+	}
+
+	if fullPath == "" {
+		return nil, fmt.Errorf("invalid internal dir: %s", internalDir)
+	}
+
+	u, err := url.Parse("file:///" + filepath.ToSlash(fullPath))
+	return u, err
 }

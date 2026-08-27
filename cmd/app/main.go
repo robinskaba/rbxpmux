@@ -9,7 +9,7 @@ import (
 
 	"github.com/robinskaba/rbxpmux/internal/client"
 	"github.com/robinskaba/rbxpmux/internal/config"
-	"github.com/robinskaba/rbxpmux/internal/controller"
+	"github.com/robinskaba/rbxpmux/internal/middleman"
 	"github.com/robinskaba/rbxpmux/internal/ui"
 
 	"fyne.io/fyne/v2"
@@ -41,7 +41,7 @@ func main() {
 	}
 
 	api := client.NewRbxApi(settings.ApiKey)
-	controller := controller.NewController(api, settings, configuration)
+	controller := middleman.NewController(api, settings, configuration)
 
 	a := app.NewWithID("rbxpmux")
 
