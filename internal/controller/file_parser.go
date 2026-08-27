@@ -25,6 +25,10 @@ func parseTXTFile(path string) (string, string, error) {
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
+		err = scanner.Err()
+		if err != nil {
+			return "", "", err
+		}
 		line := scanner.Text()
 		switch strings.ToLower(line) {
 		case "copy":
@@ -32,7 +36,8 @@ func parseTXTFile(path string) (string, string, error) {
 		case "remove":
 			buf = &remove
 		default:
-			buf.WriteString(line + "\n")
+			buf.WriteString(line)
+			buf.WriteString("\n")
 		}
 	}
 	return strings.TrimSpace(copy.String()), strings.TrimSpace(remove.String()), nil
