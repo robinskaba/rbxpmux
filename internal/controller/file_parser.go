@@ -53,15 +53,23 @@ func archiveTXTFile(universeId int, copyStr, removeStr string) error {
 	now := time.Now().Format("02-01-2006_15-04")
 	destPath := filepath.Join(historyDir, now+".txt")
 
-	content := copyStr
-	if removeStr != "" {
-		if content != "" {
-			content += "\n\n"
+	output := strings.Builder{}
+	if copyStr != "" {
+		output.WriteString("copy\n")
+		output.WriteString(copyStr)
+		output.WriteString("\n")
+
+		if removeStr != "" {
+			output.WriteString("\n")
 		}
-		content += removeStr
+	}
+	if removeStr != "" {
+		output.WriteString("remove\n")
+		output.WriteString(removeStr)
+		output.WriteString("\n")
 	}
 
-	err = os.WriteFile(destPath, []byte(content), 0644)
+	err = os.WriteFile(destPath, []byte(output.String()), 0644)
 	if err == nil {
 		slog.Info("instruction file archived", "path", destPath)
 	}
