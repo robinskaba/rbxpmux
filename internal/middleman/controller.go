@@ -113,6 +113,9 @@ func (c *Controller) EditPlaces(copy, remove string) error {
 		for _, line := range lines {
 			line = strings.TrimSpace(line)
 
+			// strip whitespace characters
+			line = strings.ReplaceAll(line, "\t", "")
+
 			// remove --comments from instruction (workspace.Items -- new item)
 			commentIdx := strings.Index(line, "--")
 			if commentIdx != -1 {
