@@ -115,7 +115,7 @@ func replaceInstance(instance *instance, with *rbxfile.Instance) error {
 	return nil
 }
 
-func performCopy(origin *rbxfile.Root, target *rbxfile.Root, instruction string) error {
+func performCopy(origin *rbxfile.Root, target *rbxfile.Root, instruction string, references map[string]string) error {
 	originInstance, err := findInstance(origin, instruction)
 	if err != nil {
 		if errors.Is(err, ErrInstanceNotFound) {
@@ -125,7 +125,14 @@ func performCopy(origin *rbxfile.Root, target *rbxfile.Root, instruction string)
 	}
 
 	destinationInstance, err := findInstance(target, instruction)
-	if err != nil {
+	isReplace := (err == nil)
+
+	// validate reference IDs to avoid duplicates
+	if dupPath, hasDup := CheckDuplicateReferences(originInstance.object, references, instruction, isReplace); hasDup {
+		return fmt.Errorf("DUPLICATE ID FOUND: %s", dupPath)
+	}
+
+	if !isReplace {
 		if errors.Is(err, ErrInstanceNotFound) {
 			// INSERT INSTANCE
 			destinationParent, err := findInstance(target, parentInstruction(instruction))
@@ -165,6 +172,8 @@ func performRemove(target *rbxfile.Root, instruction string) error {
 }
 
 func executePlaceInstructions(origin *rbxfile.Root, target *rbxfile.Root, instructions []Instruction) error {
+	references := extractReferencePaths(target)
+
 	for i := range instructions {
 		ins := instructions[i]
 
@@ -187,7 +196,7 @@ func executePlaceInstructions(origin *rbxfile.Root, target *rbxfile.Root, instru
 
 		switch ins.Type {
 		case COPY:
-			err := performCopy(origin, target, ins.Content)
+			err := performCopy(origin, target, ins.Content, references)
 			if err != nil {
 				return fmt.Errorf("COPY %s: %w", ins.Content, err)
 			}
