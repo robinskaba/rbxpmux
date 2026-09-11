@@ -172,7 +172,8 @@ func performRemove(target *rbxfile.Root, instruction string) error {
 }
 
 func executePlaceInstructions(origin *rbxfile.Root, target *rbxfile.Root, instructions []Instruction) error {
-	references := extractReferencePaths(target)
+	var removes []Instruction
+	var copies []Instruction
 
 	for i := range instructions {
 		ins := instructions[i]
@@ -194,18 +195,31 @@ func executePlaceInstructions(origin *rbxfile.Root, target *rbxfile.Root, instru
 			ins.Content = strings.Replace(ins.Content, "workspace", "Workspace", 1)
 		}
 
+		// sort by type - need REMOVE instructions first so if duplicate ids are handled it doesnt throw an error
 		switch ins.Type {
-		case COPY:
-			err := performCopy(origin, target, ins.Content, references)
-			if err != nil {
-				return fmt.Errorf("COPY %s: %w", ins.Content, err)
-			}
 		case REMOVE:
-			err := performRemove(target, ins.Content)
-			if err != nil {
-				return fmt.Errorf("REMOVE %s: %w", ins.Content, err)
-			}
+			removes = append(removes, ins)
+		case COPY:
+			copies = append(copies, ins)
 		}
 	}
+
+	// perform removes
+	for _, ins := range removes {
+		err := performRemove(target, ins.Content)
+		if err != nil {
+			return fmt.Errorf("REMOVE %s: %w", ins.Content, err)
+		}
+	}
+
+	// perform copies
+	references := extractReferencePaths(target)
+	for _, ins := range copies {
+		err := performCopy(origin, target, ins.Content, references)
+		if err != nil {
+			return fmt.Errorf("COPY %s: %w", ins.Content, err)
+		}
+	}
+
 	return nil
 }

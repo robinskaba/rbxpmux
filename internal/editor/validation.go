@@ -24,8 +24,10 @@ func extractReferencePathsRecursive(inst *rbxfile.Instance, currentPath string, 
 		path = currentPath + "." + name
 	}
 
-	if inst.Reference != "" {
-		refMap[inst.Reference] = path
+	if val, ok := inst.Properties["UniqueId"]; ok {
+		if idStr := val.String(); idStr != "" {
+			refMap[idStr] = path
+		}
 	}
 
 	for _, child := range inst.Children {
@@ -58,15 +60,15 @@ func hasReference(inst *rbxfile.Instance, refID string) bool {
 	return false
 }
 
-// CheckDuplicateReferences checks if any reference in the incoming instance tree already exists in the target place.
-// Returns the path of the duplicate if found, and a boolean indicating if a duplicate was found.
-// If isReplace is true, it will ignore duplicates that exist exactly at or within destPath, as they will be overwritten.
+// checks for duplicate references
 func CheckDuplicateReferences(incoming *rbxfile.Instance, targetRefs map[string]string, destPath string, isReplace bool) (string, bool) {
-	if incoming.Reference != "" {
-		if existingPath, ok := targetRefs[incoming.Reference]; ok {
-			isSafe := isReplace && (existingPath == destPath || len(existingPath) > len(destPath) && existingPath[:len(destPath)+1] == destPath+".")
-			if !isSafe {
-				return existingPath, true
+	if val, ok := incoming.Properties["UniqueId"]; ok {
+		if idStr := val.String(); idStr != "" {
+			if existingPath, ok := targetRefs[idStr]; ok {
+				isSafe := isReplace && (existingPath == destPath || len(existingPath) > len(destPath) && existingPath[:len(destPath)+1] == destPath+".")
+				if !isSafe {
+					return existingPath, true
+				}
 			}
 		}
 	}
