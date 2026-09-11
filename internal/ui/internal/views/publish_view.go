@@ -59,7 +59,7 @@ type PublishViewConfiguration struct {
 	OnLogsClick       func()
 	OnFileUploadClick func()
 	OnSettingsClick   func()
-	OnPublish         func(Place, []Place, string, string)
+	OnPublish         func(Place, []Place, string, string, bool)
 }
 
 var selectedOrigin int
@@ -77,7 +77,10 @@ func PublishView(cfg *PublishViewConfiguration) fyne.CanvasObject {
 		cfg.OnSettingsClick,
 	)
 
-	placesMenu := placesMenu(cfg.Places, cfg.DefaultOrigin, cfg.DefaultTargets)
+	toggle, toggleContainer := utils.NewPublishSwitch(nil)
+	toggle.SetChecked(true)
+
+	placesMenu := placesMenu(cfg.Places, cfg.DefaultOrigin, cfg.DefaultTargets, toggleContainer)
 	inputMenu := inputMenu(func(copy, remove string) {
 		var o Place
 		var t []Place
@@ -91,7 +94,7 @@ func PublishView(cfg *PublishViewConfiguration) fyne.CanvasObject {
 				}
 			}
 		}
-		cfg.OnPublish(o, t, copy, remove)
+		cfg.OnPublish(o, t, copy, remove, !toggle.Checked)
 	}, &cfg.SetInputText)
 
 	body := container.New(
@@ -138,7 +141,7 @@ func inputMenu(onPublish func(string, string), setInputText *func(string, string
 	)
 }
 
-func placesMenu(places []Place, defaultOrigin Place, defaultTargets []Place) fyne.CanvasObject {
+func placesMenu(places []Place, defaultOrigin Place, defaultTargets []Place, toggle fyne.CanvasObject) fyne.CanvasObject {
 	var options []string
 	placeMap := make(map[string]int)
 
@@ -183,7 +186,7 @@ func placesMenu(places []Place, defaultOrigin Place, defaultTargets []Place) fyn
 
 	content := container.NewBorder(
 		topSection,
-		nil,
+		toggle,
 		nil,
 		nil,
 		multiSelectWidget,

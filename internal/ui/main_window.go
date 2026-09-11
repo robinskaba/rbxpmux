@@ -206,9 +206,9 @@ func setPublishView(controller *middleman.Controller, universeId int, publishVie
 					}
 				}()
 			},
-			OnPublish: func(selectedOrigin views.Place, selectedTargets []views.Place, copy, remove string) {
+			OnPublish: func(selectedOrigin views.Place, selectedTargets []views.Place, copy, remove string, saveOnly bool) {
 				controller.ClearMemory()
-				startPublishProcess(controller, universeId, selectedOrigin, selectedTargets, copy, remove)
+				startPublishProcess(controller, universeId, selectedOrigin, selectedTargets, copy, remove, saveOnly)
 			},
 		}
 		publishViewCfg.OnSettingsClick = func() {

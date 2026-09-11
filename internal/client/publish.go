@@ -7,8 +7,8 @@ import (
 	"net/http"
 )
 
-func (api *RbxApi) PublishPlace(universeId int, placeId int, file []byte) error {
-	return api.postPlace(universeId, placeId, file)
+func (api *RbxApi) PublishPlace(universeId int, placeId int, file []byte, saveOnly bool) error {
+	return api.postPlace(universeId, placeId, file, saveOnly)
 }
 
 var ErrPlaceOpenInStudio error = fmt.Errorf("conflict caused by having the place open in studio")
@@ -18,7 +18,7 @@ type unacceptableResponse struct {
 	Message string `json:"message"`
 }
 
-func (api *RbxApi) postPlace(universeId int, placeId int, file []byte) error {
+func (api *RbxApi) postPlace(universeId int, placeId int, file []byte, saveOnly bool) error {
 	endpoint := fmt.Sprintf("https://apis.roblox.com/universes/v1/%d/places/%d/versions", universeId, placeId) // limit: 30 requests / minute
 	req, err := http.NewRequest("POST", endpoint, bytes.NewReader(file))
 	if err != nil {
@@ -28,7 +28,13 @@ func (api *RbxApi) postPlace(universeId int, placeId int, file []byte) error {
 	req.Header.Add("Content-Type", "application/octet-stream")
 
 	query := req.URL.Query()
-	query.Add("versionType", "Published") // 'Saved' = save only, 'Published' = save + publish
+
+	// 'Saved' = save only, 'Published' = save + publish
+	versionType := "Published"
+	if saveOnly {
+		versionType = "Saved"
+	}
+	query.Add("versionType", versionType)
 	req.URL.RawQuery = query.Encode()
 
 	res, err := api.client.Do(req)

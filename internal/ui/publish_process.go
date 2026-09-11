@@ -16,7 +16,7 @@ import (
 	"github.com/robinskaba/rbxpmux/internal/ui/internal/views"
 )
 
-func startPublishProcess(controller *middleman.Controller, universeId int, origin views.Place, targets []views.Place, copyStr string, removeStr string) {
+func startPublishProcess(controller *middleman.Controller, universeId int, origin views.Place, targets []views.Place, copyStr string, removeStr string, saveOnly bool) {
 	if controller.Settings.ApiKey == "" {
 		dialog.ShowInformation("Missing API key", "You do not have an API key configured.", mainWindow)
 		return
@@ -169,7 +169,7 @@ func startPublishProcess(controller *middleman.Controller, universeId int, origi
 		}
 
 		for _, target := range targets {
-			err := controller.PublishPlace(universeId, target.Id)
+			err := controller.PublishPlace(universeId, target.Id, saveOnly)
 			if err != nil {
 				setError(err)
 				markError(targetPublishSteps[target.Id], err)

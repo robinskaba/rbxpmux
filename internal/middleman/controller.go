@@ -145,7 +145,7 @@ func (c *Controller) EditPlaces(copy, remove string) error {
 	return nil
 }
 
-func (c *Controller) PublishPlace(universeId int, placeId int) error {
+func (c *Controller) PublishPlace(universeId int, placeId int, saveOnly bool) error {
 	converted, ok := c.memory.results[placeId]
 	if !ok {
 		return fmt.Errorf("converted place is missing in memory: %d", placeId)
@@ -155,7 +155,7 @@ func (c *Controller) PublishPlace(universeId int, placeId int) error {
 	var err error
 
 	for attempt := 1; attempt <= 4; attempt++ {
-		err = c.Api.PublishPlace(universeId, placeId, converted)
+		err = c.Api.PublishPlace(universeId, placeId, converted, saveOnly)
 		if err == nil {
 			pslog.Info("publishing successful", "attempts", attempt)
 			return nil
