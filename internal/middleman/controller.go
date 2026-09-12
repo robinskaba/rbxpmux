@@ -170,6 +170,9 @@ func (c *Controller) PublishPlace(params PublishPlaceParams) error {
 			pslog.Info("publishing successful", "attempts", attempt)
 
 			// set notes
+			if params.NoteTitle == "" {
+				params.NoteTitle = fmt.Sprintf("Version %d", version)
+			}
 			err = c.Api.SetVersionNotes(params.PlaceId, version, params.NoteTitle, params.NoteDesc)
 			if err != nil {
 				pslog.Error("setting version notes failed", "error", err)
