@@ -113,8 +113,8 @@ func (l *buttonHeightLayout) Layout(objects []fyne.CanvasObject, size fyne.Size)
 func (l *buttonHeightLayout) MinSize(objects []fyne.CanvasObject) fyne.Size {
 	if len(objects) > 0 {
 		s := objects[0].MinSize()
-		btnMin := widget.NewButton("T", nil).MinSize()
-		return fyne.NewSize(s.Width, fyne.Max(s.Height, btnMin.Height))
+		btnHeight := theme.IconInlineSize() + theme.Padding()*2
+		return fyne.NewSize(s.Width, fyne.Max(s.Height, btnHeight))
 	}
 	return fyne.NewSize(0, 0)
 }

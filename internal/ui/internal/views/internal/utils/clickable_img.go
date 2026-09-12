@@ -19,7 +19,8 @@ func (c *clickableImage) CreateRenderer() fyne.WidgetRenderer {
 }
 
 func (c *clickableImage) MinSize() fyne.Size {
-	return widget.NewButtonWithIcon("", theme.SettingsIcon(), nil).MinSize() // steal dimensions from a regular button
+	s := theme.IconInlineSize() + theme.Padding()*2
+	return fyne.NewSize(s, s)
 }
 
 func (c *clickableImage) Tapped(_ *fyne.PointEvent) {

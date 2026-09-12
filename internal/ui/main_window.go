@@ -228,9 +228,9 @@ func setPublishView(controller *middleman.Controller, universeId int, publishVie
 		}()
 
 		controller.SetLatestUniverse(universeId)
-		publishView := views.PublishView(publishViewCfg)
 
 		fyne.Do(func() {
+			publishView := views.PublishView(publishViewCfg)
 			loadingBar.Stop()
 			wrapper.Objects = []fyne.CanvasObject{publishView}
 			mainWindow.SetTitle(fmt.Sprintf("Place publishing in %d - rbxpmux", universeId))
