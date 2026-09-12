@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"sync"
+	"unicode/utf8"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/container"
@@ -16,7 +17,12 @@ import (
 	"github.com/robinskaba/rbxpmux/internal/ui/internal/views"
 )
 
-func startPublishProcess(controller *middleman.Controller, universeId int, origin views.Place, targets []views.Place, copyStr string, removeStr string, saveOnly bool) {
+func startPublishProcess(controller *middleman.Controller, universeId int, origin views.Place, targets []views.Place, title string, copyStr string, removeStr string, saveOnly bool) {
+	if utf8.RuneCountInString(title) > 50 {
+		dialog.ShowError(errors.New("note title cannot be longer than 50 characters"), mainWindow)
+		return
+	}
+
 	if controller.Settings.ApiKey == "" {
 		dialog.ShowInformation("Missing API key", "You do not have an API key configured.", mainWindow)
 		return
@@ -89,6 +95,15 @@ func startPublishProcess(controller *middleman.Controller, universeId int, origi
 				step.icon.SetResource(theme.NewColoredResource(theme.CancelIcon(), theme.ColorNameError))
 				step.icon.Refresh()
 				step.label.Text += fmt.Sprintf(" - %s", err.Error())
+				step.label.Refresh()
+			})
+		}
+
+		markWarning := func(step *stepUI, msg string) {
+			fyne.Do(func() {
+				step.icon.SetResource(theme.NewColoredResource(theme.WarningIcon(), theme.ColorNameWarning))
+				step.icon.Refresh()
+				step.label.Text += fmt.Sprintf(" - %s", msg)
 				step.label.Refresh()
 			})
 		}
@@ -169,13 +184,24 @@ func startPublishProcess(controller *middleman.Controller, universeId int, origi
 		}
 
 		for _, target := range targets {
-			err := controller.PublishPlace(universeId, target.Id, saveOnly)
+			err := controller.PublishPlace(middleman.PublishPlaceParams{
+				UniverseId: universeId,
+				PlaceId:    target.Id,
+				SaveOnly:   saveOnly,
+				NoteTitle:  title,
+				NoteDesc:   middleman.BuildNoteDescription(copyStr, removeStr), // autofilled instructions
+			})
 			if err != nil {
-				setError(err)
-				markError(targetPublishSteps[target.Id], err)
-				continue
+				if errors.Is(err, middleman.ErrFailedToSetNotes) {
+					markWarning(targetPublishSteps[target.Id], "note publishing failed")
+				} else {
+					setError(err)
+					markError(targetPublishSteps[target.Id], err)
+					continue
+				}
+			} else {
+				markDone(targetPublishSteps[target.Id])
 			}
-			markDone(targetPublishSteps[target.Id])
 		}
 
 		wg.Wait()
@@ -186,7 +212,7 @@ func startPublishProcess(controller *middleman.Controller, universeId int, origi
 				dialog.ShowError(processErr, mainWindow)
 			})
 		} else {
-			err := controller.ArchiveTXTFile(universeId, copyStr, removeStr)
+			err := controller.ArchiveTXTFile(universeId, title, copyStr, removeStr)
 			if err != nil {
 				slog.Warn("failed to archive instruction file", "error", err)
 			}

@@ -7,10 +7,6 @@ import (
 	"net/http"
 )
 
-func (api *RbxApi) PublishPlace(universeId int, placeId int, file []byte, saveOnly bool) error {
-	return api.postPlace(universeId, placeId, file, saveOnly)
-}
-
 var ErrPlaceOpenInStudio error = fmt.Errorf("conflict caused by having the place open in studio")
 
 type unacceptableResponse struct {
@@ -18,11 +14,11 @@ type unacceptableResponse struct {
 	Message string `json:"message"`
 }
 
-func (api *RbxApi) postPlace(universeId int, placeId int, file []byte, saveOnly bool) error {
+func (api *RbxApi) PublishPlace(universeId int, placeId int, file []byte, saveOnly bool) (int, error) {
 	endpoint := fmt.Sprintf("https://apis.roblox.com/universes/v1/%d/places/%d/versions", universeId, placeId) // limit: 30 requests / minute
 	req, err := http.NewRequest("POST", endpoint, bytes.NewReader(file))
 	if err != nil {
-		return err
+		return 0, err
 	}
 	req.Header.Add("x-api-key", api.key)
 	req.Header.Add("Content-Type", "application/octet-stream")
@@ -39,7 +35,7 @@ func (api *RbxApi) postPlace(universeId int, placeId int, file []byte, saveOnly 
 
 	res, err := api.client.Do(req)
 	if err != nil {
-		return err
+		return 0, err
 	}
 	defer res.Body.Close()
 
@@ -47,13 +43,22 @@ func (api *RbxApi) postPlace(universeId int, placeId int, file []byte, saveOnly 
 		var unRes unacceptableResponse
 		err = json.NewDecoder(res.Body).Decode(&unRes)
 		if err != nil {
-			return err
+			return 0, err
 		}
 
 		if unRes.Code == "Conflict" {
-			return ErrPlaceOpenInStudio
+			return 0, ErrPlaceOpenInStudio
 		}
-		return fmt.Errorf("place publish resulted in: %d (%s) - %s", res.StatusCode, unRes.Code, unRes.Message)
+		return 0, fmt.Errorf("place publish resulted in: %d (%s) - %s", res.StatusCode, unRes.Code, unRes.Message)
 	}
-	return nil
+
+	var content struct {
+		VersionNumber int `json:"versionNumber"`
+	}
+	err = json.NewDecoder(res.Body).Decode(&content)
+	if err != nil {
+		return 0, fmt.Errorf("version response decoding error: %w", err)
+	}
+
+	return content.VersionNumber, nil
 }

@@ -29,6 +29,8 @@ type editMemory struct {
 	results map[int][]byte
 }
 
+var ErrFailedToSetNotes error = fmt.Errorf("publishing notes failed")
+
 func NewController(api *client.RbxApi, settings *config.Settings, configuration *config.PMUXConfig) *Controller {
 	return &Controller{
 		Api:           api,
@@ -145,19 +147,35 @@ func (c *Controller) EditPlaces(copy, remove string) error {
 	return nil
 }
 
-func (c *Controller) PublishPlace(universeId int, placeId int, saveOnly bool) error {
-	converted, ok := c.memory.results[placeId]
+type PublishPlaceParams struct {
+	UniverseId int
+	PlaceId    int
+	SaveOnly   bool
+	NoteTitle  string
+	NoteDesc   string
+}
+
+func (c *Controller) PublishPlace(params PublishPlaceParams) error {
+	converted, ok := c.memory.results[params.PlaceId]
 	if !ok {
-		return fmt.Errorf("converted place is missing in memory: %d", placeId)
+		return fmt.Errorf("converted place is missing in memory: %d", params.PlaceId)
 	}
 
-	pslog := slog.With("universeId", universeId, "placeId", placeId)
+	pslog := slog.With("universeId", params.UniverseId, "placeId", params.PlaceId)
 	var err error
 
 	for attempt := 1; attempt <= 4; attempt++ {
-		err = c.Api.PublishPlace(universeId, placeId, converted, saveOnly)
+		version, err := c.Api.PublishPlace(params.UniverseId, params.PlaceId, converted, params.SaveOnly)
 		if err == nil {
 			pslog.Info("publishing successful", "attempts", attempt)
+
+			// set notes
+			err = c.Api.SetVersionNotes(params.PlaceId, version, params.NoteTitle, params.NoteDesc)
+			if err != nil {
+				pslog.Error("setting version notes failed", "error", err)
+				return ErrFailedToSetNotes // custom error to not stop the complete publishing flow
+			}
+
 			return nil
 		}
 
@@ -174,8 +192,32 @@ func (c *Controller) ParseTXTFile(path string) (string, string, error) {
 	return parseTXTFile(path)
 }
 
-func (c *Controller) ArchiveTXTFile(universeId int, copyStr, removeStr string) error {
-	return archiveTXTFile(universeId, copyStr, removeStr)
+func (c *Controller) ArchiveTXTFile(universeId int, note, copy, remove string) error {
+	dir, err := config.GetProgramDir()
+	if err != nil {
+		return err
+	}
+
+	historyDir := filepath.Join(dir, "history", fmt.Sprint(universeId))
+	err = os.MkdirAll(historyDir, 0755)
+	if err != nil {
+		return err
+	}
+
+	now := time.Now().Format("02-01-2006_15-04")
+	destPath := filepath.Join(historyDir, now+".txt")
+
+	output := strings.Builder{}
+	output.WriteString("-- ")
+	output.WriteString(note)
+	output.WriteString("\n\n")
+	output.WriteString(mergeInputStrings(copy, remove))
+
+	err = os.WriteFile(destPath, []byte(output.String()), 0644)
+	if err == nil {
+		slog.Info("instruction file archived", "path", destPath)
+	}
+	return err
 }
 
 type InternalDir string

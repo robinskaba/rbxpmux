@@ -15,6 +15,7 @@ var requiredScopes = []string{
 	"legacy-asset:manage",
 	"universe-places:write",
 	"universe.place:read",
+	"universe.place:write", // required for publishing notes
 }
 
 type ApiConfigurationViewConfiguration struct {

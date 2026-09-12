@@ -59,7 +59,7 @@ type PublishViewConfiguration struct {
 	OnLogsClick       func()
 	OnFileUploadClick func()
 	OnSettingsClick   func()
-	OnPublish         func(Place, []Place, string, string, bool)
+	OnPublish         func(Place, []Place, string, string, string, bool)
 }
 
 var selectedOrigin int
@@ -81,7 +81,7 @@ func PublishView(cfg *PublishViewConfiguration) fyne.CanvasObject {
 	toggle.SetChecked(true)
 
 	placesMenu := placesMenu(cfg.Places, cfg.DefaultOrigin, cfg.DefaultTargets, toggleContainer)
-	inputMenu := inputMenu(func(copy, remove string) {
+	inputMenu := inputMenu(func(title, copy, remove string) {
 		var o Place
 		var t []Place
 		for _, p := range cfg.Places {
@@ -94,7 +94,7 @@ func PublishView(cfg *PublishViewConfiguration) fyne.CanvasObject {
 				}
 			}
 		}
-		cfg.OnPublish(o, t, copy, remove, !toggle.Checked)
+		cfg.OnPublish(o, t, title, copy, remove, !toggle.Checked)
 	}, &cfg.SetInputText)
 
 	body := container.New(
@@ -112,7 +112,7 @@ func PublishView(cfg *PublishViewConfiguration) fyne.CanvasObject {
 	)
 }
 
-func inputMenu(onPublish func(string, string), setInputText *func(string, string)) fyne.CanvasObject {
+func inputMenu(onPublish func(string, string, string), setInputText *func(string, string)) fyne.CanvasObject {
 	copyLabel := utils.Label("Copy")
 	copyEntry := widget.NewMultiLineEntry()
 	copyCol := container.NewBorder(copyLabel, nil, nil, nil, copyEntry)
@@ -128,13 +128,19 @@ func inputMenu(onPublish func(string, string), setInputText *func(string, string
 		}
 	}
 
+	titleLabel := utils.Label("Note")
+	titleEntry := widget.NewEntry()
+	titleCol := container.NewVBox(titleLabel, titleEntry)
+
 	publishBtn := widget.NewButton("Publish", func() {
-		onPublish(copyEntry.Text, removeEntry.Text)
+		onPublish(titleEntry.Text, copyEntry.Text, removeEntry.Text)
 	})
+
+	bottomSection := container.NewVBox(titleCol, publishBtn)
 
 	return container.NewBorder(
 		nil,
-		publishBtn,
+		bottomSection,
 		nil,
 		nil,
 		container.NewGridWithColumns(2, copyCol, removeCol),
