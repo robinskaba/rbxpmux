@@ -53,4 +53,4 @@ require (
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-replace github.com/robloxapi/rbxfile => github.com/robinskaba/rbxfile v0.0.0-20260731075713-d4af8d56212b
+replace github.com/robloxapi/rbxfile => github.com/robinskaba/rbxfile v0.0.0-20261115115508-5d8a875ca29b
